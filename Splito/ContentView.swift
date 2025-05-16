@@ -11,79 +11,149 @@ struct ContentView: View {
     @State private var billAmount: Double = 0.0
     @State private var numberOfPeople: Int = 0
     @State private var tipPercentage: Double = 0.10
+
     @FocusState private var amountIsFocused: Bool
-    
+
     let tipPercentages: [Double] = [0.0, 0.10, 0.15, 0.20, 0.25]
-    
+
+    var actualNumberOfPeople: Int {
+        numberOfPeople + 2
+    }
+
+    var tipAmount: Double {
+        billAmount * tipPercentage
+    }
+
     var billTotal: Double {
-        let tipAmount = billAmount * tipPercentage
-        return billAmount + tipAmount
+        billAmount + tipAmount
     }
-    
+
     var totalPerPerson: Double {
-        let peopleCount = Double(numberOfPeople + 2)
-        let tipSelection = Double(tipPercentage)
-        let tipAmount = billAmount * tipSelection
-        let billTotal = billAmount + tipAmount
-        let amountPerPerson = billTotal / peopleCount
-        
-        return amountPerPerson
+        let peopleCount = Double(actualNumberOfPeople)
+        if peopleCount <= 0 {
+            return 0.0
+        }
+        return billTotal / peopleCount
     }
-    
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField("Bill amount", value: $billAmount, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
-                        .keyboardType(.decimalPad)
-                        .focused($amountIsFocused)
-                        .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    Spacer()
-                                    Button("Done") {
-                                        amountIsFocused = false
-                                    }
-                                }
+            ScrollView {
+                VStack(spacing: 25) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Enter Bill Amount")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+
+                        HStack {
+                            Image(systemName: "dollarsign.circle")
+                                .foregroundColor(.green)
+
+                            TextField("Amount", value: $billAmount, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
+                                .keyboardType(.decimalPad)
+                                .focused($amountIsFocused)
+                                .padding(.horizontal)
+                                .padding(.vertical, 10)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("How many people?")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+
+                        Stepper("People: \(actualNumberOfPeople)", value: $numberOfPeople, in: 0...8)
+                            .padding(.horizontal)
+                            .padding(.vertical, 10)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Tip Percentage")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+
+                        Picker("Tip Percentage", selection: $tipPercentage) {
+                            ForEach(tipPercentages, id: \.self) {
+                                Text($0, format: .percent)
                             }
-                    
-                    Picker("Number of people", selection: $numberOfPeople) {
-                        ForEach(2..<11) {
-                            Text("\($0) people")
                         }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal, -4)
                     }
-                    .pickerStyle(.navigationLink)
-                }
-                
-                Section("Tip Percentage") {
-                    Picker("Tip Percentage", selection: $tipPercentage) {
-                        ForEach(tipPercentages, id: \.self) {
-                            Text($0, format: .percent)
+                     .padding(.horizontal)
+
+                    VStack(spacing: 15) {
+                         Text("Calculation Summary")
+                              .font(.title2)
+                              .fontWeight(.semibold)
+                              .foregroundColor(.primary)
+
+                        HStack {
+                            Text("Tip Amount:")
+                            Spacer()
+                            Text(tipAmount, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
+                                .fontWeight(.medium)
                         }
+
+                        HStack {
+                            Text("Total Bill (including tip):")
+                            Spacer()
+                            Text(billTotal, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
+                                .fontWeight(.medium)
+                        }
+
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Amount per person:")
+                                .font(.title3)
+                                .fontWeight(.medium)
+
+                            Text(totalPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
+                                .font(.largeTitle)
+                                .fontWeight(.heavy)
+                                .foregroundColor(.green)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.vertical, 8)
+                                .background(Color.green.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+                         .padding(.top, 10)
+
                     }
-                    .pickerStyle(.segmented)
+                    .padding()
+                    .background(Color(.systemGray5).opacity(0.3))
+                    .cornerRadius(15)
+                    .padding(.horizontal)
                     
-                    HStack {
-                        Text("Tip amount:")
-                        Spacer()
-                        Text(billAmount * tipPercentage, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
-                    }
+                    Image(systemName: "person.3.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 70, height: 70)
+                                    .foregroundColor(.secondary)
+                                    .padding(.top, 25)
+
+                    Spacer()
+
                 }
-                
-                Section {
-                    HStack {
-                        Text("Bill total:")
-                        Spacer()
-                        Text(billTotal, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
-                    }
-                    
-                    HStack {
-                        Text("Each person:")
-                        Spacer()
-                        Text(totalPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "ZAR"))
+                .padding(.top)
+
+            }
+            .navigationTitle("Splito")
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        amountIsFocused = false
                     }
                 }
             }
-            .navigationTitle("Splito")
         }
     }
 }
@@ -91,3 +161,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+
