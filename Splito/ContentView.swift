@@ -65,7 +65,7 @@ struct ContentView: View {
                             .font(.headline)
                             .foregroundColor(.secondary)
 
-                        Stepper("People: \(actualNumberOfPeople)", value: $numberOfPeople, in: 0...8)
+                        Stepper("People: \(actualNumberOfPeople)", value: $numberOfPeople, in: 0...48)
                             .padding(.horizontal)
                             .padding(.vertical, 10)
                             .background(Color(.systemGray6))
